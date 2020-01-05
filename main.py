@@ -51,27 +51,27 @@ async def animate_spaceship(canvas, row, column, *frames):
     min_x, min_y = 1, 1
     max_x, max_y = canvas.getmaxyx()
 
-    while True:
-        for frame in cycle(frames):
-            delta_row, delta_column, space = read_controls(canvas)
-            frame_rows, frame_columns = get_frame_size(frame)
+    
+    for frame in cycle(frames):
+        delta_row, delta_column, space = read_controls(canvas)
+        frame_rows, frame_columns = get_frame_size(frame)
 
-            if prev_column + delta_column + frame_columns > max_y - 1 or prev_column + delta_column + 1 < min_y + 1:
-                delta_column = 0
-            if prev_row + delta_row + frame_rows > max_x - 1 or prev_row + delta_row + 1 < min_x + 1:
-                delta_row = 0
+        if prev_column + delta_column + frame_columns > max_y - 1 or prev_column + delta_column + 1 < min_y + 1:
+            delta_column = 0
+        if prev_row + delta_row + frame_rows > max_x - 1 or prev_row + delta_row + 1 < min_x + 1:
+            delta_row = 0
 
-            if last_frame:
-                draw_frame(canvas, prev_row, prev_column, last_frame, negative=True)
+        if last_frame:
+            draw_frame(canvas, prev_row, prev_column, last_frame, negative=True)
 
-            prev_row = new_row = prev_row + delta_row
-            prev_column = new_column = prev_column + delta_column
-            draw_frame(canvas, new_row, new_column, frame)
+        prev_row = new_row = prev_row + delta_row
+        prev_column = new_column = prev_column + delta_column
+        draw_frame(canvas, new_row, new_column, frame)
 
-            last_frame = frame
+        last_frame = frame
 
-            for _ in range(2):
-                await asyncio.sleep(0)
+        for _ in range(2):
+            await asyncio.sleep(0)
 
 def star_generator(height, width, number=300):
 
@@ -98,15 +98,12 @@ def main(canvas):
 
     coroutines.append(animate_spaceship(canvas, y_start, x_start, *rocket_frames))
 
-    while True:
-        
-        for coroutine in coroutines:
+    while len(coroutines):
+        for coroutine in coroutines.copy():
             try:
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
-        if len(coroutines) == 0:
-            break
 
         canvas.refresh()
         time.sleep(TIC_TIMEOUT)
